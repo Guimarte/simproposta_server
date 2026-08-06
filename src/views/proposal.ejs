@@ -3,240 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= proposal.title %> | SimProposta</title>
+  <title><%= proposal.title %> | <%= company ? company.name : 'SimAprova' %></title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --navy: #0B1F33;
-      --teal: <%= proposal.company.primaryColor || '#0F766E' %>;
-      --mint: #2DD4BF;
-      --off-white: #F7FAFC;
-      --text-main: #0B1F33;
-      --text-muted: #456071;
-      --border: #D7E3E8;
-      --surface: #FFFFFF;
+      --primary: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      --bg: #071A2B;
+      --surface: #0A2136;
+      --surface-border: #1A3D5D;
+      --text-main: #F3F7F8;
+      --text-muted: #8AA4B7;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
-      background-color: var(--off-white);
+      background-color: var(--bg);
       color: var(--text-main);
       line-height: 1.6;
-      padding-bottom: 120px;
+      padding-bottom: 80px;
     }
 
     .header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 20px 0;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       position: sticky;
       top: 0;
       z-index: 100;
     }
 
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    .header-content {
+    .brand {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
-
-    .logo-img {
-      height: 40px;
-      object-fit: contain;
+    .brand img {
+      max-height: 38px;
     }
-
-    .company-title {
-      font-size: 20px;
+    .brand-title {
       font-weight: 700;
-      color: var(--navy);
+      font-size: 18px;
     }
 
-    .badge-status {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      background: rgba(15, 118, 110, 0.12);
-      color: var(--teal);
-      border: 1px solid var(--teal);
+    .container {
+      max-width: 800px;
+      margin: 40px auto 0 auto;
+      padding: 0 20px;
     }
 
     .hero {
-      margin-top: 40px;
-      background: var(--surface);
+      background: linear-gradient(135deg, rgba(6, 107, 99, 0.15) 0%, rgba(7, 26, 43, 0.4) 100%);
+      border: 1px solid var(--surface-border);
       border-radius: 16px;
-      padding: 40px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 20px rgba(11, 31, 51, 0.04);
+      padding: 32px;
+      margin-bottom: 32px;
     }
 
     .hero h1 {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--navy);
-      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
 
     .hero-meta {
       display: flex;
       gap: 24px;
+      margin-top: 20px;
+      font-size: 13px;
       color: var(--text-muted);
-      font-size: 14px;
-      margin-top: 16px;
+      border-top: 1px solid var(--surface-border);
       padding-top: 16px;
-      border-top: 1px solid var(--border);
     }
 
     .block-card {
-      margin-top: 24px;
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 32px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 16px rgba(11, 31, 51, 0.03);
+      background-color: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
     }
 
     .block-card h3 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 16px;
+      font-size: 18px;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      border-left: 4px solid var(--primary);
+      padding-left: 12px;
     }
 
     .price-item {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 16px;
-      border-radius: 10px;
-      background: var(--off-white);
-      border: 1px solid var(--border);
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      padding: 12px 0;
+      border-bottom: 1px dashed var(--surface-border);
     }
+    .price-item:last-child { border-bottom: none; }
 
-    .price-item:hover {
-      border-color: var(--teal);
-    }
-
-    .price-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--teal);
-    }
-
-    .footer-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 20px 0;
-      box-shadow: 0 -10px 25px rgba(11, 31, 51, 0.08);
-      z-index: 1000;
-    }
-
-    .footer-content {
+    .total-box {
+      background-color: var(--surface);
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      padding: 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    .total-price {
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--navy);
+      margin-top: 32px;
     }
 
     .btn-accept {
-      background: var(--teal);
-      color: #FFFFFF;
-      border: none;
-      padding: 16px 36px;
-      border-radius: 10px;
-      font-size: 16px;
+      background-color: var(--primary);
+      color: #fff;
       font-weight: 700;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 15px;
       cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease;
+      transition: opacity 0.2s;
     }
+    .btn-accept:hover { opacity: 0.9; }
 
-    .btn-accept:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.05);
-    }
-
-    /* Modal de Aceite Digital */
-    .modal-overlay {
+    /* Modal Aceite */
+    .modal {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(11, 31, 51, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 2000;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 200;
       align-items: center;
       justify-content: center;
     }
-
-    .modal-card {
-      background: var(--surface);
+    .modal-content {
+      background-color: var(--surface);
+      border: 1px solid var(--surface-border);
+      padding: 32px;
       border-radius: 16px;
-      padding: 36px;
       width: 100%;
-      max-width: 480px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 40px rgba(11, 31, 51, 0.2);
+      max-width: 440px;
     }
-
-    .modal-card h2 {
-      font-size: 22px;
-      color: var(--navy);
-      margin-bottom: 8px;
-    }
-
-    .input-field {
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; margin-bottom: 6px; color: var(--text-muted); }
+    .form-group input {
       width: 100%;
-      padding: 12px 16px;
+      padding: 12px;
       border-radius: 8px;
-      border: 1px solid var(--border);
-      margin-top: 12px;
-      font-size: 14px;
-      font-family: inherit;
-    }
-
-    .input-field:focus {
-      outline: none;
-      border-color: var(--teal);
+      border: 1px solid var(--surface-border);
+      background-color: var(--bg);
+      color: #fff;
     }
   </style>
 </head>
 <body>
 
   <header class="header">
-    <div class="container header-content">
-      <% if (proposal.company.logoUrl) { %>
-        <img src="<%= proposal.company.logoUrl %>" alt="Logo" class="logo-img">
+    <div class="brand">
+      <% if (company && company.logoUrl) { %>
+        <img src="<%= company.logoUrl %>" alt="Logo">
       <% } else { %>
-        <div class="company-title"><%= proposal.company.name %></div>
+        <span class="brand-title"><%= company ? company.name : 'SimAprova' %></span>
       <% } %>
-      <div class="badge-status">
-        <%= proposal.status === 'ACCEPTED' ? '✓ Proposta Aprovada' : 'Proposta Comercial Oficial' %>
-      </div>
+    </div>
+    <div>
+      <span style="font-size: 12px; background: rgba(18, 168, 154, 0.15); color: #12A89A; padding: 6px 12px; border-radius: 20px; border: 1px solid #12A89A;">
+        Proposta Comercial Oficial
+      </span>
     </div>
   </header>
 
@@ -246,128 +184,132 @@
       <p style="color: var(--text-muted);">Proposta personalizada preparada para <strong><%= proposal.clientName %></strong></p>
       
       <div class="hero-meta">
-        <div><strong>Vendedor:</strong> <%= proposal.user.name %></div>
-        <div><strong>Contato:</strong> <%= proposal.user.email %></div>
+        <div><strong>Vendedor:</strong> <%= (proposal.user && proposal.user.name) ? proposal.user.name : (company ? company.name : 'Equipe Comercial') %></div>
+        <div><strong>Contato:</strong> <%= (proposal.user && proposal.user.email) ? proposal.user.email : (proposal.clientEmail || '') %></div>
         <div><strong>Validade:</strong> 15 Dias</div>
       </div>
     </section>
 
-    <% proposal.blocks.forEach(function(block) { %>
-      <section class="block-card">
-        <h3><%= block.title %></h3>
+    <% if (blocks && blocks.length > 0) { %>
+      <% blocks.forEach(function(block) { %>
+        <section class="block-card">
+          <h3><%= block.title || 'Informações' %></h3>
 
-        <% if (block.type === 'TEXT') { %>
-          <p style="color: var(--text-muted); font-size: 15px;"><%= block.content.text %></p>
-        <% } %>
+          <% if (block.type === 'TEXT') { %>
+            <p style="color: var(--text-muted); font-size: 15px; white-space: pre-line;">
+              <%= typeof block.content === 'object' ? (block.content.text || '') : block.content %>
+            </p>
+          <% } %>
 
-        <% if (block.type === 'VIDEO') { %>
-          <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px;">
-            <iframe src="<%= block.content.videoUrl %>" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
-          </div>
-        <% } %>
-
-        <% if (block.type === 'PRICE_TABLE' && block.content.items) { %>
-          <% block.content.items.forEach(function(item, idx) { %>
-            <label class="price-item">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <input type="checkbox" checked class="price-checkbox" data-price="<%= item.price %>" onchange="recalculateTotal()">
-                <div>
-                  <div style="font-weight: 600; color: var(--navy);"><%= item.name %></div>
-                  <div style="font-size: 13px; color: var(--text-muted);"><%= item.description %></div>
-                </div>
+          <% if (block.type === 'VIDEO') { %>
+            <% const videoUrl = typeof block.content === 'object' ? (block.content.videoUrl || block.content.url || '') : block.content; %>
+            <% if (videoUrl) { %>
+              <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px;">
+                <iframe src="<%= videoUrl %>" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
               </div>
-              <div style="font-weight: 700; color: var(--navy);">R$ <%= item.price.toFixed(2) %></div>
-            </label>
-          <% }); %>
-        <% } %>
-      </section>
-    <% }); %>
+            <% } %>
+          <% } %>
+
+          <% if (block.type === 'PRICE_TABLE') { %>
+            <% const items = (typeof block.content === 'object' && block.content.items) ? block.content.items : []; %>
+            <% if (items.length > 0) { %>
+              <% items.forEach(function(item) { %>
+                <div class="price-item">
+                  <div>
+                    <strong style="font-size: 14px;"><%= item.name %></strong>
+                    <p style="font-size: 12px; color: var(--text-muted);"><%= item.description %></p>
+                  </div>
+                  <strong style="color: var(--primary);">R$ <%= parseFloat(item.price || 0).toFixed(2) %></strong>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p style="color: var(--text-muted); font-size: 14px;">Tabela de preços personalizada inclusa no valor total.</p>
+            <% } %>
+          <% } %>
+        </section>
+      <% }); %>
+    <% } %>
+
+    <section class="total-box">
+      <div>
+        <span style="font-size: 13px; color: var(--text-muted);">Investimento Total da Proposta</span>
+        <h2 style="font-size: 26px; color: var(--primary);">R$ <%= parseFloat(proposal.totalValue || 0).toFixed(2) %></h2>
+      </div>
+
+      <% if (proposal.status === 'ACCEPTED') { %>
+        <div style="background: rgba(18, 168, 154, 0.2); border: 1px solid #12A89A; color: #12A89A; padding: 12px 20px; border-radius: 8px; font-weight: bold;">
+          ✓ Proposta Aprovada Digitalmente
+        </div>
+      <% } else { %>
+        <button class="btn-accept" onclick="document.getElementById('modalAccept').style.display='flex'">
+          Aprovar Proposta Digitalmente
+        </button>
+      <% } %>
+    </section>
   </main>
 
-  <footer class="footer-bar">
-    <div class="container footer-content">
-      <div>
-        <div style="font-size: 13px; color: var(--text-muted);">Valor Total do Projeto</div>
-        <div class="total-price" id="displayTotal">R$ <%= proposal.totalValue.toFixed(2) %></div>
-      </div>
-      <button class="btn-accept" onclick="openAcceptModal()">✓ Aprovar Proposta Agora</button>
-    </div>
-  </footer>
-
   <!-- Modal de Aceite Digital -->
-  <div class="modal-overlay" id="acceptModal">
-    <div class="modal-card">
-      <h2>Aprovação Digital da Proposta</h2>
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Preencha os dados abaixo para confirmar seu aceite contratual.</p>
-      
-      <form id="acceptForm" onsubmit="submitAcceptance(event)">
-        <input type="text" id="signerName" class="input-field" placeholder="Nome Completo" required>
-        <input type="text" id="signerCpfCnpj" class="input-field" placeholder="CPF ou CNPJ" required>
-        <input type="email" id="signerEmail" class="input-field" placeholder="E-mail de Confirmação" required>
-        
+  <div id="modalAccept" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 8px;">Aceite Digital da Proposta</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Ao assinar abaixo, você concorda com os valores e escopo descritos nesta proposta.
+      </p>
+
+      <form id="formAccept" onsubmit="handleAccept(event)">
+        <div class="form-group">
+          <label>Seu Nome Completo</label>
+          <input type="text" id="signerName" required placeholder="Ex: Roberto Silva">
+        </div>
+        <div class="form-group">
+          <label>CPF ou CNPJ</label>
+          <input type="text" id="signerDoc" required placeholder="000.000.000-00">
+        </div>
+        <div class="form-group">
+          <label>Seu E-mail Corporativo</label>
+          <input type="email" id="signerEmail" required placeholder="roberto@empresa.com">
+        </div>
+
         <div style="display: flex; gap: 12px; margin-top: 24px;">
-          <button type="button" style="flex: 1; padding: 12px; border: 1px solid var(--border); background: var(--off-white); border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="closeAcceptModal()">Cancelar</button>
-          <button type="submit" class="btn-accept" style="flex: 2; padding: 12px;">Confirmar Aceite</button>
+          <button type="button" class="btn-accept" style="background: transparent; border: 1px solid var(--surface-border); flex: 1;" onclick="document.getElementById('modalAccept').style.display='none'">Cancelar</button>
+          <button type="submit" class="btn-accept" style="flex: 2;">Assinar & Aprovar</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    const proposalId = "<%= proposal.id %>";
-    let baseValue = <%= proposal.totalValue %>;
+    // Rastreamento em tempo real de abertura
+    fetch('/api/track/open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId: '<%= proposal.id %>', userAgent: navigator.userAgent })
+    });
 
-    function recalculateTotal() {
-      let total = 0;
-      const checkboxes = document.querySelectorAll('.price-checkbox');
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          total += parseFloat(cb.getAttribute('data-price') || 0);
-        }
-      });
-      document.getElementById('displayTotal').innerText = 'R$ ' + (total > 0 ? total : baseValue).toFixed(2);
-    }
-
-    function openAcceptModal() {
-      document.getElementById('acceptModal').style.display = 'flex';
-    }
-
-    function closeAcceptModal() {
-      document.getElementById('acceptModal').style.display = 'none';
-    }
-
-    async function submitAcceptance(e) {
+    // Submissão de Aceite Digital
+    async function handleAccept(e) {
       e.preventDefault();
-      const signerName = document.getElementById('signerName').value;
-      const signerCpfCnpj = document.getElementById('signerCpfCnpj').value;
-      const signerEmail = document.getElementById('signerEmail').value;
+      const name = document.getElementById('signerName').value;
+      const doc = document.getElementById('signerDoc').value;
+      const email = document.getElementById('signerEmail').value;
 
       try {
-        const response = await fetch(`/api/proposals/${proposalId}/accept`, {
+        const res = await fetch('/api/proposals/<%= proposal.id %>/accept', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signerName, signerCpfCnpj, signerEmail })
+          body: JSON.stringify({ signerName: name, signerDoc: doc, signerEmail: email })
         });
-
-        if (response.ok) {
-          alert('🎉 Proposta Aprovada com Sucesso! Um comprovante foi registrado.');
+        
+        if (res.ok) {
+          alert('🎉 Proposta Aprovada com Sucesso! Um comprovante foi gerado.');
           window.location.reload();
         } else {
-          alert('Erro ao registrar aceite.');
+          alert('Erro ao aprovar proposta. Tente novamente.');
         }
       } catch (err) {
-        alert('Erro de conexão ao aceitar proposta.');
+        alert('Falha na conexão.');
       }
     }
-
-    // Ping de Rastreamento a cada 10s
-    setInterval(() => {
-      fetch('/api/track/ping', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ proposalId, scrollPercentage: 50 })
-      }).catch(() => {});
-    }, 10000);
   </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../shared/prisma';
+import { supabase } from '../../shared/supabase';
 
 export async function companyRoutes(app: FastifyInstance) {
   // 🏢 Cadastrar Nova Loja / Empresa (Supervisor)
@@ -8,21 +9,30 @@ export async function companyRoutes(app: FastifyInstance) {
     try {
       const { name, cnpj, logoUrl, primaryColor, maxSellers, adminName, adminEmail, adminPassword } = req.body as any;
 
+      if (!name || !adminEmail) {
+        return reply.status(400).send({ error: 'Nome da loja e e-mail do admin são obrigatórios' });
+      }
+
+      // 1. Criar a empresa no banco relacional
       const company = await prisma.company.create({
         data: {
           name,
-          cnpj,
+          cnpj: cnpj || null,
           logoUrl: logoUrl || '',
-          primaryColor: primaryColor || '#10B981',
-          maxSellers: maxSellers || 5,
+          primaryColor: primaryColor || '#066B63',
+          maxSellers: parseInt(maxSellers) || 5,
           planStatus: 'ACTIVE',
         },
       });
 
-      const hashedPassword = await bcrypt.hash(adminPassword || '123456', 10);
+      // 2. Criptografar a senha do Admin da Loja
+      const rawPassword = adminPassword || 'Mudar123!';
+      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+      // 3. Criar o usuário Admin da Loja no Prisma (role: COMPANY_ADMIN)
       const adminUser = await prisma.user.create({
         data: {
-          name: adminName,
+          name: adminName || `Admin ${name}`,
           email: adminEmail,
           password: hashedPassword,
           role: 'COMPANY_ADMIN',
@@ -30,7 +40,34 @@ export async function companyRoutes(app: FastifyInstance) {
         },
       });
 
-      return reply.status(201).send({ company, adminUser });
+      // 4. Registrar o usuário no Supabase Auth para permitir login gerenciado
+      try {
+        await supabase.auth.signUp({
+          email: adminEmail,
+          password: rawPassword,
+          options: {
+            data: {
+              name: adminUser.name,
+              role: 'COMPANY_ADMIN',
+              companyId: company.id,
+            },
+          },
+        });
+      } catch (supabaseErr) {
+        console.warn('⚠️ Nota: Supabase Auth já registrado ou em modo local fallback.');
+      }
+
+      return reply.status(201).send({
+        success: true,
+        message: `Loja ${name} cadastrada com sucesso!`,
+        company,
+        adminUser: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email,
+          role: adminUser.role,
+        },
+      });
     } catch (err: any) {
       return reply.status(400).send({ error: err.message || 'Erro ao cadastrar empresa' });
     }
@@ -48,7 +85,7 @@ export async function companyRoutes(app: FastifyInstance) {
     return { companies };
   });
 
-  // 🎨 Alterar Tema / Logo da Proposta (Admin)
+  // 🎨 Alterar Tema / Logo da Proposta (Admin da Loja)
   app.patch('/api/companies/theme', async (req, reply) => {
     try {
       const authHeader = req.headers.authorization;

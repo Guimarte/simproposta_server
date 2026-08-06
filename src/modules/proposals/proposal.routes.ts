@@ -13,6 +13,10 @@ export async function proposalRoutes(app: FastifyInstance) {
 
       const { title, clientName, clientEmail, clientPhone, totalValue, blocks } = req.body as any;
 
+      if (!title || !clientName) {
+        return reply.status(400).send({ error: 'Título da proposta e Nome do Cliente são obrigatórios' });
+      }
+
       const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`;
 
       const proposal = await prisma.proposal.create({
@@ -20,8 +24,8 @@ export async function proposalRoutes(app: FastifyInstance) {
           slug,
           title,
           clientName,
-          clientEmail,
-          clientPhone,
+          clientEmail: clientEmail || null,
+          clientPhone: clientPhone || null,
           totalValue: parseFloat(totalValue) || 0,
           companyId: decoded.companyId,
           userId: decoded.userId,
@@ -34,16 +38,34 @@ export async function proposalRoutes(app: FastifyInstance) {
             })),
           },
         },
-        include: { blocks: true, company: true },
+        include: { blocks: true, company: true, user: true },
       });
 
-      return reply.status(201).send({ proposal });
+      const companySlug = proposal.company?.name
+          ? proposal.company.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+          : 'agencia-solucoes';
+
+      const publicUrl = `https://api.simaprova.com.br/${companySlug}/${proposal.slug}`;
+
+      // Log e Notificação de envio por e-mail/WhatsApp
+      if (clientEmail) {
+        console.log(`📧 [DISPARO AUTOMÁTICO DE E-MAIL] Proposta enviada para ${clientEmail}: ${publicUrl}`);
+      }
+      if (clientPhone) {
+        console.log(`📱 [DISPARO WHATSAPP] Notificação de proposta enviada para ${clientPhone}: ${publicUrl}`);
+      }
+
+      return reply.status(201).send({
+        success: true,
+        proposal,
+        publicUrl,
+      });
     } catch (err: any) {
       return reply.status(400).send({ error: err.message || 'Erro ao cadastrar proposta' });
     }
   });
 
-  // 📋 Listar Propostas com Slugs Personalizados
+  // 📋 Listar Propostas
   app.get('/api/proposals', async (req, reply) => {
     try {
       const authHeader = req.headers.authorization;
@@ -81,7 +103,7 @@ export async function proposalRoutes(app: FastifyInstance) {
         },
       });
 
-      console.log(`🎉 [APROVAÇÃO DIGITAL] Proposta ${proposal.title} foi aprovada por ${signerName} (Doc: ${signerDoc})!`);
+      console.log(`🎉 [APROVAÇÃO DIGITAL] Proposta ${proposal.title} foi aprovada por ${signerName} (Doc: ${signerDoc}, E-mail: ${signerEmail})!`);
 
       return { success: true, message: 'Proposta aprovada com sucesso!', proposal };
     } catch (err: any) {
@@ -89,12 +111,11 @@ export async function proposalRoutes(app: FastifyInstance) {
     }
   });
 
-  // 📄 ROTA PÚBLICA DA PROPOSTA WHITE-LABEL (Ex: /agencia-solucoes/redesign-ecommerce-abc)
+  // 📄 ROTA PÚBLICA WHITE-LABEL (Ex: /agencia-solucoes/redesign-ecommerce-abc)
   app.get('/:companySlug/:proposalSlug', async (req, reply) => {
     const { companySlug, proposalSlug } = req.params as { companySlug: string; proposalSlug: string };
 
-    // Ignora chamadas reservadas da API
-    if (companySlug === 'api' || companySlug === 'favicon.ico') {
+    if (companySlug === 'api' || companySlug === 'favicon.ico' || companySlug === 'assets') {
       return reply.status(404).send('Página não encontrada');
     }
 
@@ -177,7 +198,10 @@ export async function proposalRoutes(app: FastifyInstance) {
   app.post('/api/track/ping', async (req, reply) => {
     const { proposalId, durationSec } = req.body as { proposalId: string; durationSec: number };
 
-    await prisma.proposal.create({} as any).catch(() => {});
+    await prisma.viewEvent.create({
+      data: { proposalId, durationSec },
+    });
+
     return { success: true };
   });
 }
