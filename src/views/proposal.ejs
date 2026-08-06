@@ -196,32 +196,93 @@
           <h3><%= block.title || 'Informações' %></h3>
 
           <% if (block.type === 'TEXT') { %>
-            <p style="color: var(--text-muted); font-size: 15px; white-space: pre-line;">
-              <%= typeof block.content === 'object' ? (block.content.text || '') : block.content %>
-            </p>
+            <% 
+              let textContent = '';
+              if (typeof block.content === 'object' && block.content !== null) {
+                textContent = block.content.text || '';
+              } else if (typeof block.content === 'string') {
+                if (block.content.startsWith('{')) {
+                  try {
+                    const parsed = JSON.parse(block.content);
+                    textContent = parsed.text || parsed.content || '';
+                  } catch (_) { textContent = block.content; }
+                } else { textContent = block.content; }
+              }
+            %>
+            <p style="color: var(--text-muted); font-size: 15px; white-space: pre-line;"><%= textContent %></p>
           <% } %>
 
           <% if (block.type === 'VIDEO') { %>
-            <% const videoUrl = typeof block.content === 'object' ? (block.content.videoUrl || block.content.url || '') : block.content; %>
-            <% if (videoUrl) { %>
-              <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px;">
-                <iframe src="<%= videoUrl %>" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+            <% 
+              let rawVideoUrl = '';
+              if (typeof block.content === 'object' && block.content !== null) {
+                rawVideoUrl = block.content.videoUrl || block.content.url || block.content.text || '';
+              } else if (typeof block.content === 'string') {
+                if (block.content.startsWith('{')) {
+                  try {
+                    const parsed = JSON.parse(block.content);
+                    rawVideoUrl = parsed.videoUrl || parsed.url || parsed.text || '';
+                  } catch (_) { rawVideoUrl = block.content; }
+                } else { rawVideoUrl = block.content; }
+              }
+
+              // Conversão de URLs para Embed (YouTube / Vimeo)
+              let embedUrl = rawVideoUrl;
+              if (rawVideoUrl.includes('youtube.com/watch') || rawVideoUrl.includes('youtu.be/')) {
+                const ytMatch = rawVideoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                if (ytMatch && ytMatch[1]) {
+                  embedUrl = 'https://www.youtube.com/embed/' + ytMatch[1];
+                }
+              } else if (rawVideoUrl.includes('vimeo.com/')) {
+                const vmMatch = rawVideoUrl.match(/vimeo\.com\/(?:.*\/)?([0-9]+)/);
+                if (vmMatch && vmMatch[1]) {
+                  embedUrl = 'https://player.vimeo.com/video/' + vmMatch[1];
+                }
+              }
+            %>
+
+            <% if (embedUrl && (embedUrl.startsWith('http://') || embedUrl.startsWith('https://'))) { %>
+              <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+                <iframe src="<%= embedUrl %>" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
               </div>
+            <% } else { %>
+              <p style="color: var(--text-muted); font-size: 14px; font-style: italic;">Vídeo explicativo não configurado.</p>
             <% } %>
           <% } %>
 
           <% if (block.type === 'PRICE_TABLE') { %>
-            <% const items = (typeof block.content === 'object' && block.content.items) ? block.content.items : []; %>
-            <% if (items.length > 0) { %>
-              <% items.forEach(function(item) { %>
+            <% 
+              let priceItems = [];
+              let priceText = '';
+
+              if (typeof block.content === 'object' && block.content !== null) {
+                priceItems = block.content.items || [];
+                priceText = block.content.text || '';
+              } else if (typeof block.content === 'string') {
+                if (block.content.startsWith('{')) {
+                  try {
+                    const parsed = JSON.parse(block.content);
+                    priceItems = parsed.items || [];
+                    priceText = parsed.text || parsed.content || '';
+                  } catch (_) { priceText = block.content; }
+                } else { priceText = block.content; }
+              }
+            %>
+
+            <% if (priceItems && priceItems.length > 0) { %>
+              <% priceItems.forEach(function(item) { %>
                 <div class="price-item">
                   <div>
-                    <strong style="font-size: 14px;"><%= item.name %></strong>
-                    <p style="font-size: 12px; color: var(--text-muted);"><%= item.description %></p>
+                    <strong style="font-size: 14px;"><%= item.name || item.title %></strong>
+                    <p style="font-size: 12px; color: var(--text-muted);"><%= item.description || '' %></p>
                   </div>
                   <strong style="color: var(--primary);">R$ <%= parseFloat(item.price || 0).toFixed(2) %></strong>
                 </div>
               <% }); %>
+            <% } else if (priceText) { %>
+              <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid var(--surface-border);">
+                <p style="color: var(--text-main); font-size: 14px; white-space: pre-line;"><%= priceText %></p>
+              </div>
             <% } else { %>
               <p style="color: var(--text-muted); font-size: 14px;">Tabela de preços personalizada inclusa no valor total.</p>
             <% } %>
