@@ -6,8 +6,8 @@
   <title>Proposta Comercial - <%= proposal.title %></title>
   <style>
     body {
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #071A2B;
+      font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+      background-color: #051322;
       color: #F3F7F8;
       margin: 0;
       padding: 0;
@@ -15,95 +15,157 @@
     }
     .wrapper {
       width: 100%;
-      background-color: #071A2B;
-      padding: 40px 10px;
+      background-color: #051322;
+      padding: 40px 12px;
     }
     .main-card {
-      max-width: 600px;
+      max-width: 620px;
       margin: 0 auto;
       background-color: #0A2136;
       border: 1px solid #1A3D5D;
-      border-radius: 16px;
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
     }
     .header {
-      background-color: #0D2A44;
-      padding: 28px;
+      background: linear-gradient(180deg, #0D2A44 0%, #0A2136 100%);
+      padding: 32px;
       text-align: center;
       border-bottom: 1px solid #1A3D5D;
     }
-    .company-name {
-      font-size: 20px;
-      font-weight: 700;
+    .company-brand {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
       color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
       margin: 0;
     }
-    .content {
-      padding: 32px 28px;
-    }
-    .title {
-      font-size: 22px;
+    .badge-official {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 14px;
+      background-color: rgba(6, 107, 99, 0.18);
+      border: 1px solid <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      border-radius: 20px;
+      font-size: 11px;
       font-weight: 700;
-      color: #FFFFFF;
-      margin: 0 0 12px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .subtitle {
+    .content {
+      padding: 36px 32px;
+    }
+    .greeting {
       font-size: 15px;
       color: #8AA4B7;
-      margin: 0 0 24px 0;
-      line-height: 1.5;
+      margin-bottom: 8px;
     }
-    .details-box {
-      background: rgba(6, 107, 99, 0.12);
-      border: 1px solid <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+    .proposal-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin: 0 0 20px 0;
+      line-height: 1.3;
+    }
+
+    /* Tabela Executiva de Resumo */
+    .executive-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 28px 0;
+      background-color: #071A2B;
+      border: 1px solid #1A3D5D;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .executive-table th {
+      background-color: #0D2A44;
+      color: #8AA4B7;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid #1A3D5D;
+    }
+    .executive-table td {
+      padding: 14px 18px;
+      font-size: 14px;
+      color: #F3F7F8;
+      border-bottom: 1px solid #122B42;
+    }
+    .executive-table tr:last-child td {
+      border-bottom: none;
+    }
+    .table-highlight-row {
+      background-color: rgba(6, 107, 99, 0.12);
+    }
+    .table-highlight-row td {
+      border-top: 1px solid <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+    }
+    .price-total-tag {
+      font-size: 20px;
+      font-weight: 800;
+      color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+    }
+
+    /* Bloco de Escopo */
+    .scope-box {
+      background-color: #071A2B;
+      border: 1px solid #1A3D5D;
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 28px;
     }
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-    .detail-row:last-child {
-      margin-bottom: 0;
-    }
-    .detail-label {
-      color: #8AA4B7;
-    }
-    .detail-val {
+    .scope-title {
+      font-size: 13px;
       font-weight: 700;
+      color: #8AA4B7;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .scope-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
       color: #F3F7F8;
+      margin-bottom: 6px;
     }
-    .total-val {
-      font-size: 20px;
-      color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
-      font-weight: 800;
+    .scope-dot {
+      width: 6px;
+      height: 6px;
+      background-color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      border-radius: 50%;
     }
+
     .btn-container {
       text-align: center;
-      margin: 32px 0 20px 0;
+      margin: 36px 0 16px 0;
     }
     .cta-btn {
-      background-color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      background: linear-gradient(135deg, <%= company && company.primaryColor ? company.primaryColor : '#066B63' %> 0%, <%= company && company.primaryColor ? company.primaryColor : '#066B63' %> 100%);
       color: #FFFFFF !important;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 16px;
-      padding: 16px 36px;
-      border-radius: 10px;
+      padding: 18px 42px;
+      border-radius: 12px;
       display: inline-block;
-      box-shadow: 0 4px 14px rgba(6, 107, 99, 0.4);
+      box-shadow: 0 6px 20px rgba(6, 107, 99, 0.35);
+      letter-spacing: 0.3px;
     }
     .footer {
-      background-color: #071A2B;
-      padding: 20px 28px;
+      background-color: #051322;
+      padding: 24px 32px;
       text-align: center;
       font-size: 12px;
       color: #8AA4B7;
       border-top: 1px solid #1A3D5D;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -112,48 +174,74 @@
     <div class="main-card">
       <div class="header">
         <% if (company && company.logoUrl) { %>
-          <img src="<%= company.logoUrl %>" alt="<%= company.name %>" style="max-height: 48px;">
+          <img src="<%= company.logoUrl %>" alt="<%= company.name %>" style="max-height: 52px; display: block; margin: 0 auto;">
         <% } else { %>
-          <h2 class="company-name"><%= company ? company.name : 'SimAprova' %></h2>
+          <h2 class="company-brand"><%= company ? company.name : 'SimAprova' %></h2>
         <% } %>
+        <span class="badge-official">✓ Proposta Comercial Oficial</span>
       </div>
 
       <div class="content">
-        <h1 class="title"><%= proposal.title %></h1>
-        <p class="subtitle">
-          Olá, <strong><%= proposal.clientName %></strong>!<br>
-          Sua proposta comercial oficial já está pronta para análise e assinatura digital.
-        </p>
+        <div class="greeting">Prezado(a) <strong><%= proposal.clientName %></strong>,</div>
+        <h1 class="proposal-title"><%= proposal.title %></h1>
 
-        <div class="details-box">
-          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <!-- Tabela Executiva de Resumo Financeiro & Condições -->
+        <table class="executive-table">
+          <thead>
             <tr>
-              <td class="detail-label" style="padding-bottom: 8px;">Cliente:</td>
-              <td class="detail-val" align="right" style="padding-bottom: 8px;"><%= proposal.clientName %></td>
+              <th width="60%">ESPECIFICAÇÃO DO PROJETO</th>
+              <th width="40%" align="right">DETALHES / VALORES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cliente Destinatário</strong></td>
+              <td align="right"><%= proposal.clientName %></td>
             </tr>
             <tr>
-              <td class="detail-label" style="padding-bottom: 8px;">Vendedor Responsável:</td>
-              <td class="detail-val" align="right" style="padding-bottom: 8px;"><%= (proposal.user && proposal.user.name) ? proposal.user.name : (company ? company.name : 'Equipe Comercial') %></td>
+              <td><strong>Responsável Comercial</strong></td>
+              <td align="right"><%= (proposal.user && proposal.user.name) ? proposal.user.name : (company ? company.name : 'Equipe Comercial') %></td>
             </tr>
             <tr>
-              <td class="detail-label" style="padding-bottom: 8px;">Validade:</td>
-              <td class="detail-val" align="right" style="padding-bottom: 8px;">15 Dias</td>
+              <td><strong>Prazo de Validade</strong></td>
+              <td align="right">15 Dias Úteis</td>
             </tr>
-            <tr>
-              <td class="detail-label" style="font-size: 16px; font-weight: bold; color: #FFFFFF;">Investimento Total:</td>
-              <td class="detail-val total-val" align="right">R$ <%= parseFloat(proposal.totalValue || 0).toFixed(2) %></td>
+            <tr class="table-highlight-row">
+              <td>
+                <strong style="font-size: 15px; color: #FFFFFF;">INVESTIMENTO TOTAL</strong><br>
+                <span style="font-size: 11px; color: #8AA4B7;">Condições exclusivas aplicadas</span>
+              </td>
+              <td align="right" class="price-total-tag">
+                R$ <%= parseFloat(proposal.totalValue || 0).toFixed(2) %>
+              </td>
             </tr>
-          </table>
-        </div>
+          </tbody>
+        </table>
+
+        <!-- Resumo dos Blocos da Proposta -->
+        <% if (proposal.blocks && proposal.blocks.length > 0) { %>
+          <div class="scope-box">
+            <div class="scope-title">Conteúdo Incluso nesta Proposta:</div>
+            <% proposal.blocks.forEach(function(b) { %>
+              <div class="scope-item">
+                <span class="scope-dot"></span>
+                <strong><%= b.title || 'Informações Gerais' %></strong>
+                <span style="color: #8AA4B7; font-size: 11px;">(<%= b.type %>)</span>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
 
         <div class="btn-container">
-          <a href="<%= publicUrl %>" target="_blank" class="cta-btn">Visualizar Proposta Comercial</a>
+          <a href="<%= publicUrl %>" target="_blank" class="cta-btn">
+            📄 Acessar Proposta Comercial & Aceite Digital
+          </a>
         </div>
       </div>
 
       <div class="footer">
-        Este e-mail foi gerado automaticamente por <strong><%= company ? company.name : 'SimAprova' %></strong>.<br>
-        Acordo Sólido — Confiança Imediatamente Visível.
+        Esta proposta foi enviada por <strong><%= company ? company.name : 'SimAprova' %></strong> através da plataforma SimAprova SaaS.<br>
+        <strong>Acordo Sólido — Confiança Imediatamente Visível.</strong>
       </div>
     </div>
   </div>
