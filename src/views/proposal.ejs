@@ -102,7 +102,8 @@
     .price-item {
       display: flex;
       justify-content: space-between;
-      padding: 12px 0;
+      align-items: center;
+      padding: 14px 0;
       border-bottom: 1px dashed var(--surface-border);
     }
     .price-item:last-child { border-bottom: none; }
@@ -225,25 +226,40 @@
                 rawVideoText = block.content;
               }
 
-              // Extração e conversão de URL para o formato seguro youtube-nocookie.com
+              let isDirectVideo = false;
               let embedUrl = '';
               let directWatchUrl = '';
 
-              const ytMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
-              if (ytMatch && ytMatch[1]) {
-                const videoId = ytMatch[1];
-                embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId + '?rel=0&modestbranding=1';
-                directWatchUrl = 'https://www.youtube.com/watch?v=' + videoId;
+              // Suporte a arquivos de vídeo nativo MP4 / WebM / MOV / Supabase Storage
+              if (rawVideoText.match(/\.(mp4|webm|mov|m4v)(\?.*)?$/i) || rawVideoText.includes('/storage/v1/object/public/')) {
+                isDirectVideo = true;
+                embedUrl = rawVideoText.trim();
               } else {
-                const vmMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(?:.*\/)?([0-9]+)/i);
-                if (vmMatch && vmMatch[1]) {
-                  embedUrl = 'https://player.vimeo.com/video/' + vmMatch[1];
-                  directWatchUrl = 'https://vimeo.com/' + vmMatch[1];
+                // Regex de extração do YouTube / Vimeo
+                const ytMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+                if (ytMatch && ytMatch[1]) {
+                  const videoId = ytMatch[1];
+                  embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId + '?rel=0&modestbranding=1';
+                  directWatchUrl = 'https://www.youtube.com/watch?v=' + videoId;
+                } else {
+                  const vmMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(?:.*\/)?([0-9]+)/i);
+                  if (vmMatch && vmMatch[1]) {
+                    embedUrl = 'https://player.vimeo.com/video/' + vmMatch[1];
+                    directWatchUrl = 'https://vimeo.com/' + vmMatch[1];
+                  }
                 }
               }
             %>
 
-            <% if (embedUrl) { %>
+            <% if (isDirectVideo && embedUrl) { %>
+              <!-- Player Nativo HTML5 Sem Nenhuma Dependência Externa ou Bloqueio -->
+              <div style="border-radius: 12px; overflow: hidden; background: #000;">
+                <video controls style="width: 100%; max-height: 440px; display: block;" playsinline>
+                  <source src="<%= embedUrl %>">
+                  Seu navegador não suporta o reprodutor de vídeo HTML5.
+                </video>
+              </div>
+            <% } else if (embedUrl) { %>
               <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
                 <iframe 
                   src="<%= embedUrl %>" 
@@ -257,7 +273,7 @@
               <% if (directWatchUrl) { %>
                 <div style="margin-top: 12px; text-align: right;">
                   <a href="<%= directWatchUrl %>" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    ▶ Assistir diretamente no YouTube
+                    ▶ Abrir e Assistir Vídeo em Tela Cheia
                   </a>
                 </div>
               <% } %>
@@ -269,19 +285,19 @@
           <% if (block.type === 'PRICE_TABLE') { %>
             <% 
               let priceItems = [];
-              let priceText = '';
+              let rawContentStr = '';
 
               if (typeof block.content === 'object' && block.content !== null) {
                 priceItems = block.content.items || [];
-                priceText = block.content.text || '';
+                rawContentStr = block.content.text || '';
               } else if (typeof block.content === 'string') {
                 if (block.content.startsWith('{')) {
                   try {
                     const parsed = JSON.parse(block.content);
                     priceItems = parsed.items || [];
-                    priceText = parsed.text || parsed.content || '';
-                  } catch (_) { priceText = block.content; }
-                } else { priceText = block.content; }
+                    rawContentStr = parsed.text || parsed.content || '';
+                  } catch (_) { rawContentStr = block.content; }
+                } else { rawContentStr = block.content; }
               }
             %>
 
@@ -289,18 +305,20 @@
               <% priceItems.forEach(function(item) { %>
                 <div class="price-item">
                   <div>
-                    <strong style="font-size: 14px;"><%= item.name || item.title %></strong>
-                    <p style="font-size: 12px; color: var(--text-muted);"><%= item.description || '' %></p>
+                    <strong style="font-size: 14px; color: var(--text-main);"><%= item.name || item.title || 'Item da Proposta' %></strong>
+                    <% if (item.description) { %>
+                      <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;"><%= item.description %></p>
+                    <% } %>
                   </div>
-                  <strong style="color: var(--primary);">R$ <%= parseFloat(item.price || 0).toFixed(2) %></strong>
+                  <strong style="color: var(--primary); font-size: 15px;">R$ <%= parseFloat(item.price || 0).toFixed(2) %></strong>
                 </div>
               <% }); %>
-            <% } else if (priceText) { %>
-              <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid var(--surface-border);">
-                <p style="color: var(--text-main); font-size: 14px; white-space: pre-line;"><%= priceText %></p>
+            <% } else if (rawContentStr) { %>
+              <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; border: 1px solid var(--surface-border);">
+                <p style="color: var(--text-main); font-size: 14px; white-space: pre-line; font-weight: 500;"><%= rawContentStr %></p>
               </div>
             <% } else { %>
-              <p style="color: var(--text-muted); font-size: 14px;">Tabela de preços personalizada inclusa no valor total.</p>
+              <p style="color: var(--text-muted); font-size: 14px;">Tabela de preços personalizada inclusa no valor total da proposta.</p>
             <% } %>
           <% } %>
         </section>
@@ -353,7 +371,7 @@
         </div>
       </form>
     </div>
-  </header>
+  </div>
 
   <script>
     // Rastreamento em tempo real de abertura
