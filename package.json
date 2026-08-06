@@ -5,8 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsup src --out-dir dist",
-    "start": "node dist/server.js",
+    "build": "tsup src/server.ts --out-dir dist && powershell -Command \"Copy-Item -Path 'src/views' -Destination 'dist/views' -Recurse -Force -ErrorAction SilentlyContinue\"",
+    "start": "npx tsx src/server.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
