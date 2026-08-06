@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Company {
+  id           String     @id @default(uuid())
+  name         String
+  cnpj         String?
+  logoUrl      String?
+  primaryColor String     @default("#10B981")
+  planStatus   String     @default("ACTIVE") // TRIAL, ACTIVE, SUSPENDED, CANCELLED
+  maxSellers   Int        @default(5)
+  users        User[]
+  proposals    Proposal[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  phone     String?
+  role      String     @default("SELLER") // SUPER_ADMIN, COMPANY_ADMIN, SELLER
+  companyId String?
+  company   Company?   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  proposals Proposal[]
+  createdAt DateTime   @default(now())
+}
+
+model Proposal {
+  id          String      @id @default(uuid())
+  slug        String      @unique
+  title       String
+  clientName  String
+  clientEmail String?
+  clientPhone String?
+  totalValue  Float
+  status      String      @default("DRAFT") // DRAFT, SENT, VIEWED, ACCEPTED, REJECTED
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  blocks      Block[]
+  views       ViewEvent[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Block {
+  id         String   @id @default(uuid())
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  type       String   // TEXT, VIDEO, PRICE_TABLE, TESTIMONIAL, SIGNATURE
+  title      String?
+  content    String   // Armazenado como JSON String no SQLite
+  order      Int
+}
+
+model ViewEvent {
+  id          String   @id @default(uuid())
+  proposalId  String
+  proposal    Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  durationSec Int      @default(0)
+  blocksRead  String?  // JSON string
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}

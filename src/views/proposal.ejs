@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= proposal.title %> | SimProposta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0B1F33;
+      --teal: <%= proposal.company.primaryColor || '#0F766E' %>;
+      --mint: #2DD4BF;
+      --off-white: #F7FAFC;
+      --text-main: #0B1F33;
+      --text-muted: #456071;
+      --border: #D7E3E8;
+      --surface: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--off-white);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 120px;
+    }
+
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-img {
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .company-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .badge-status {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(15, 118, 110, 0.12);
+      color: var(--teal);
+      border: 1px solid var(--teal);
+    }
+
+    .hero {
+      margin-top: 40px;
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 40px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(11, 31, 51, 0.04);
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 12px;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .block-card {
+      margin-top: 24px;
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(11, 31, 51, 0.03);
+    }
+
+    .block-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 16px;
+    }
+
+    .price-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-radius: 10px;
+      background: var(--off-white);
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .price-item:hover {
+      border-color: var(--teal);
+    }
+
+    .price-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--teal);
+    }
+
+    .footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 20px 0;
+      box-shadow: 0 -10px 25px rgba(11, 31, 51, 0.08);
+      z-index: 1000;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total-price {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .btn-accept {
+      background: var(--teal);
+      color: #FFFFFF;
+      border: none;
+      padding: 16px 36px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-accept:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+
+    /* Modal de Aceite Digital */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 31, 51, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 36px;
+      width: 100%;
+      max-width: 480px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(11, 31, 51, 0.2);
+    }
+
+    .modal-card h2 {
+      font-size: 22px;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 12px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--teal);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header-content">
+      <% if (proposal.company.logoUrl) { %>
+        <img src="<%= proposal.company.logoUrl %>" alt="Logo" class="logo-img">
+      <% } else { %>
+        <div class="company-title"><%= proposal.company.name %></div>
+      <% } %>
+      <div class="badge-status">
+        <%= proposal.status === 'ACCEPTED' ? '✓ Proposta Aprovada' : 'Proposta Comercial Oficial' %>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1><%= proposal.title %></h1>
+      <p style="color: var(--text-muted);">Proposta personalizada preparada para <strong><%= proposal.clientName %></strong></p>
+      
+      <div class="hero-meta">
+        <div><strong>Vendedor:</strong> <%= proposal.user.name %></div>
+        <div><strong>Contato:</strong> <%= proposal.user.email %></div>
+        <div><strong>Validade:</strong> 15 Dias</div>
+      </div>
+    </section>
+
+    <% proposal.blocks.forEach(function(block) { %>
+      <section class="block-card">
+        <h3><%= block.title %></h3>
+
+        <% if (block.type === 'TEXT') { %>
+          <p style="color: var(--text-muted); font-size: 15px;"><%= block.content.text %></p>
+        <% } %>
+
+        <% if (block.type === 'VIDEO') { %>
+          <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px;">
+            <iframe src="<%= block.content.videoUrl %>" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+          </div>
+        <% } %>
+
+        <% if (block.type === 'PRICE_TABLE' && block.content.items) { %>
+          <% block.content.items.forEach(function(item, idx) { %>
+            <label class="price-item">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <input type="checkbox" checked class="price-checkbox" data-price="<%= item.price %>" onchange="recalculateTotal()">
+                <div>
+                  <div style="font-weight: 600; color: var(--navy);"><%= item.name %></div>
+                  <div style="font-size: 13px; color: var(--text-muted);"><%= item.description %></div>
+                </div>
+              </div>
+              <div style="font-weight: 700; color: var(--navy);">R$ <%= item.price.toFixed(2) %></div>
+            </label>
+          <% }); %>
+        <% } %>
+      </section>
+    <% }); %>
+  </main>
+
+  <footer class="footer-bar">
+    <div class="container footer-content">
+      <div>
+        <div style="font-size: 13px; color: var(--text-muted);">Valor Total do Projeto</div>
+        <div class="total-price" id="displayTotal">R$ <%= proposal.totalValue.toFixed(2) %></div>
+      </div>
+      <button class="btn-accept" onclick="openAcceptModal()">✓ Aprovar Proposta Agora</button>
+    </div>
+  </footer>
+
+  <!-- Modal de Aceite Digital -->
+  <div class="modal-overlay" id="acceptModal">
+    <div class="modal-card">
+      <h2>Aprovação Digital da Proposta</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Preencha os dados abaixo para confirmar seu aceite contratual.</p>
+      
+      <form id="acceptForm" onsubmit="submitAcceptance(event)">
+        <input type="text" id="signerName" class="input-field" placeholder="Nome Completo" required>
+        <input type="text" id="signerCpfCnpj" class="input-field" placeholder="CPF ou CNPJ" required>
+        <input type="email" id="signerEmail" class="input-field" placeholder="E-mail de Confirmação" required>
+        
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button type="button" style="flex: 1; padding: 12px; border: 1px solid var(--border); background: var(--off-white); border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="closeAcceptModal()">Cancelar</button>
+          <button type="submit" class="btn-accept" style="flex: 2; padding: 12px;">Confirmar Aceite</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const proposalId = "<%= proposal.id %>";
+    let baseValue = <%= proposal.totalValue %>;
+
+    function recalculateTotal() {
+      let total = 0;
+      const checkboxes = document.querySelectorAll('.price-checkbox');
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          total += parseFloat(cb.getAttribute('data-price') || 0);
+        }
+      });
+      document.getElementById('displayTotal').innerText = 'R$ ' + (total > 0 ? total : baseValue).toFixed(2);
+    }
+
+    function openAcceptModal() {
+      document.getElementById('acceptModal').style.display = 'flex';
+    }
+
+    function closeAcceptModal() {
+      document.getElementById('acceptModal').style.display = 'none';
+    }
+
+    async function submitAcceptance(e) {
+      e.preventDefault();
+      const signerName = document.getElementById('signerName').value;
+      const signerCpfCnpj = document.getElementById('signerCpfCnpj').value;
+      const signerEmail = document.getElementById('signerEmail').value;
+
+      try {
+        const response = await fetch(`/api/proposals/${proposalId}/accept`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signerName, signerCpfCnpj, signerEmail })
+        });
+
+        if (response.ok) {
+          alert('🎉 Proposta Aprovada com Sucesso! Um comprovante foi registrado.');
+          window.location.reload();
+        } else {
+          alert('Erro ao registrar aceite.');
+        }
+      } catch (err) {
+        alert('Erro de conexão ao aceitar proposta.');
+      }
+    }
+
+    // Ping de Rastreamento a cada 10s
+    setInterval(() => {
+      fetch('/api/track/ping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proposalId, scrollPercentage: 50 })
+      }).catch(() => {});
+    }, 10000);
+  </script>
+</body>
+</html>
