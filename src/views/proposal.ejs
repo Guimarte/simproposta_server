@@ -128,6 +128,10 @@
       font-size: 15px;
       cursor: pointer;
       transition: opacity 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     .btn-accept:hover { opacity: 0.9; }
 
@@ -221,23 +225,42 @@
                 rawVideoText = block.content;
               }
 
-              // Regex inteligente de extração de link do YouTube / Vimeo
+              // Extração e conversão de URL para o formato seguro youtube-nocookie.com
               let embedUrl = '';
-              const ytMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+              let directWatchUrl = '';
+
+              const ytMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
               if (ytMatch && ytMatch[1]) {
-                embedUrl = 'https://www.youtube.com/embed/' + ytMatch[1];
+                const videoId = ytMatch[1];
+                embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId + '?rel=0&modestbranding=1';
+                directWatchUrl = 'https://www.youtube.com/watch?v=' + videoId;
               } else {
                 const vmMatch = rawVideoText.match(/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(?:.*\/)?([0-9]+)/i);
                 if (vmMatch && vmMatch[1]) {
                   embedUrl = 'https://player.vimeo.com/video/' + vmMatch[1];
+                  directWatchUrl = 'https://vimeo.com/' + vmMatch[1];
                 }
               }
             %>
 
             <% if (embedUrl) { %>
               <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
-                <iframe src="<%= embedUrl %>" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <iframe 
+                  src="<%= embedUrl %>" 
+                  style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowfullscreen
+                  referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>
               </div>
+              
+              <% if (directWatchUrl) { %>
+                <div style="margin-top: 12px; text-align: right;">
+                  <a href="<%= directWatchUrl %>" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    ▶ Assistir diretamente no YouTube
+                  </a>
+                </div>
+              <% } %>
             <% } else { %>
               <p style="color: var(--text-muted); font-size: 14px; font-style: italic;">Vídeo explicativo não configurado.</p>
             <% } %>
@@ -330,7 +353,7 @@
         </div>
       </form>
     </div>
-  </div>
+  </header>
 
   <script>
     // Rastreamento em tempo real de abertura
