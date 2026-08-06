@@ -1,14 +1,14 @@
 {
   "name": "simproposta-backend",
   "version": "1.0.0",
-  "description": "Backend API REST Multi-Tenant para SimProposta com Supabase Auth",
+  "description": "Backend API REST Multi-Tenant para SimAprova com Supabase Auth e PostgreSQL",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsup src/server.ts --out-dir dist && powershell -Command \"Copy-Item -Path 'src/views' -Destination 'dist/views' -Recurse -Force -ErrorAction SilentlyContinue\"",
+    "build": "npx prisma generate && npx prisma db push --accept-data-loss && tsup src/server.ts --out-dir dist",
     "start": "npx tsx src/server.ts",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:push": "prisma db push"
   },
   "keywords": [],
   "author": "",

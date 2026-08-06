@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Company {
@@ -12,7 +12,7 @@ model Company {
   name         String
   cnpj         String?
   logoUrl      String?
-  primaryColor String     @default("#10B981")
+  primaryColor String     @default("#066B63")
   planStatus   String     @default("ACTIVE") // TRIAL, ACTIVE, SUSPENDED, CANCELLED
   maxSellers   Int        @default(5)
   users        User[]
@@ -59,7 +59,7 @@ model Block {
   proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   type       String   // TEXT, VIDEO, PRICE_TABLE, TESTIMONIAL, SIGNATURE
   title      String?
-  content    String   // Armazenado como JSON String no SQLite
+  content    String   // Armazenado como JSON String
   order      Int
 }
 
