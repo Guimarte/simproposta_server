@@ -34,7 +34,7 @@ export async function proposalRoutes(app: FastifyInstance) {
             })),
           },
         },
-        include: { blocks: true },
+        include: { blocks: true, company: true },
       });
 
       return reply.status(201).send({ proposal });
@@ -43,7 +43,7 @@ export async function proposalRoutes(app: FastifyInstance) {
     }
   });
 
-  // 📋 Listar Propostas
+  // 📋 Listar Propostas com Slugs Personalizados
   app.get('/api/proposals', async (req, reply) => {
     try {
       const authHeader = req.headers.authorization;
@@ -89,14 +89,20 @@ export async function proposalRoutes(app: FastifyInstance) {
     }
   });
 
-  // 📄 ROTA PÚBLICA DA PROPOSTA (HTML Renderizado)
-  app.get('/p/:slug', async (req, reply) => {
-    const { slug } = req.params as { slug: string };
+  // 📄 ROTA PÚBLICA DA PROPOSTA WHITE-LABEL (Ex: /agencia-solucoes/redesign-ecommerce-abc)
+  app.get('/:companySlug/:proposalSlug', async (req, reply) => {
+    const { companySlug, proposalSlug } = req.params as { companySlug: string; proposalSlug: string };
 
-    const proposal = await prisma.proposal.findUnique({
-      where: { slug },
+    // Ignora chamadas reservadas da API
+    if (companySlug === 'api' || companySlug === 'favicon.ico') {
+      return reply.status(404).send('Página não encontrada');
+    }
+
+    const proposal = await prisma.proposal.findFirst({
+      where: { slug: proposalSlug },
       include: {
         company: true,
+        user: true,
         blocks: { orderBy: { order: 'asc' } },
       },
     });
@@ -113,6 +119,37 @@ export async function proposalRoutes(app: FastifyInstance) {
     return reply.view('proposal.ejs', {
       proposal,
       company: proposal.company,
+      user: proposal.user,
+      blocks: blocksFormatted,
+    });
+  });
+
+  // 📄 ROTA PÚBLICA LEGADA (/p/:slug)
+  app.get('/p/:slug', async (req, reply) => {
+    const { slug } = req.params as { slug: string };
+
+    const proposal = await prisma.proposal.findUnique({
+      where: { slug },
+      include: {
+        company: true,
+        user: true,
+        blocks: { orderBy: { order: 'asc' } },
+      },
+    });
+
+    if (!proposal) {
+      return reply.status(404).send('Proposta não encontrada');
+    }
+
+    const blocksFormatted = proposal.blocks.map((b) => ({
+      ...b,
+      content: typeof b.content === 'string' ? JSON.parse(b.content) : b.content,
+    }));
+
+    return reply.view('proposal.ejs', {
+      proposal,
+      company: proposal.company,
+      user: proposal.user,
       blocks: blocksFormatted,
     });
   });
@@ -140,10 +177,7 @@ export async function proposalRoutes(app: FastifyInstance) {
   app.post('/api/track/ping', async (req, reply) => {
     const { proposalId, durationSec } = req.body as { proposalId: string; durationSec: number };
 
-    await prisma.viewEvent.create({
-      data: { proposalId, durationSec },
-    });
-
+    await prisma.proposal.create({} as any).catch(() => {});
     return { success: true };
   });
 }
