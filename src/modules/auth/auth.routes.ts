@@ -4,7 +4,7 @@ import { prisma } from '../../shared/prisma';
 import { supabase } from '../../shared/supabase';
 
 export async function authRoutes(app: FastifyInstance) {
-  // POST /api/auth/login — Login via Supabase Auth + Sincronização com Prisma
+  // POST /api/auth/login — Login via Supabase Auth com Fallback Resiliente para Prisma PostgreSQL
   app.post('/api/auth/login', async (req, reply) => {
     const { email, password } = req.body as { email: string; password: string };
 
@@ -13,39 +13,43 @@ export async function authRoutes(app: FastifyInstance) {
     }
 
     try {
-      // 1. Tenta autenticação nativa via Supabase Auth se configurado
-      const { data: supabaseAuth, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (!supabaseError && supabaseAuth?.session) {
-        const user = await prisma.user.findUnique({
-          where: { email },
-          include: { company: true },
+      // 1. Tenta autenticação nativa via Supabase Auth se disponível
+      try {
+        const { data: supabaseAuth, error: supabaseError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
 
-        return reply.status(200).send({
-          token: supabaseAuth.session.access_token,
-          user: user
-            ? {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                company: user.company,
-              }
-            : {
-                id: supabaseAuth.user.id,
-                name: supabaseAuth.user.user_metadata?.name || email.split('@')[0],
-                email: supabaseAuth.user.email,
-                role: 'SELLER',
-                company: null,
-              },
-        });
+        if (!supabaseError && supabaseAuth?.session) {
+          const user = await prisma.user.findUnique({
+            where: { email },
+            include: { company: true },
+          });
+
+          return reply.status(200).send({
+            token: supabaseAuth.session.access_token,
+            user: user
+              ? {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
+                  company: user.company,
+                }
+              : {
+                  id: supabaseAuth.user.id,
+                  name: supabaseAuth.user.user_metadata?.name || email.split('@')[0],
+                  email: supabaseAuth.user.email,
+                  role: 'SELLER',
+                  company: null,
+                },
+          });
+        }
+      } catch (supabaseErr) {
+        console.warn('⚠️ Supabase Auth offline ou não configurado para este usuário. Usando banco relacional.');
       }
 
-      // 2. Fallback de Desenvolvimento Local via Prisma
+      // 2. Validação no Banco de Dados PostgreSQL (Prisma)
       const user = await prisma.user.findUnique({
         where: { email },
         include: { company: true },
@@ -76,62 +80,53 @@ export async function authRoutes(app: FastifyInstance) {
           company: user.company,
         },
       });
-    } catch (err) {
-      return reply.status(500).send({ error: 'Erro no servidor de autenticação.' });
+    } catch (err: any) {
+      console.error('❌ Erro inesperado no login:', err);
+      return reply.status(401).send({ error: err.message || 'Credenciais inválidas.' });
     }
   });
 
-  // GET /api/auth/me — Validação de Token (Supabase ou JWT)
+  // GET /api/auth/me — Validação de Sessão
   app.get('/api/auth/me', async (req, reply) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return reply.status(401).send({ error: 'Token de autorização não fornecido.' });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-
     try {
-      // 1. Tenta validar pelo Supabase Auth
-      const { data: supabaseUser, error: supabaseError } = await supabase.auth.getUser(token);
-      if (!supabaseError && supabaseUser?.user) {
-        const user = await prisma.user.findUnique({
-          where: { email: supabaseUser.user.email! },
-          include: { company: true },
-        });
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return reply.status(401).send({ error: 'Não autorizado' });
 
-        return reply.status(200).send({
-          user: user
-            ? {
+      const token = authHeader.replace('Bearer ', '');
+
+      // Tenta revalidar via Supabase Auth
+      try {
+        const { data: supabaseUser } = await supabase.auth.getUser(token);
+        if (supabaseUser?.user?.email) {
+          const user = await prisma.user.findUnique({
+            where: { email: supabaseUser.user.email },
+            include: { company: true },
+          });
+
+          if (user) {
+            return {
+              user: {
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 company: user.company,
-              }
-            : {
-                id: supabaseUser.user.id,
-                name: supabaseUser.user.user_metadata?.name || supabaseUser.user.email,
-                email: supabaseUser.user.email,
-                role: 'SELLER',
-                company: null,
               },
-        });
-      }
+            };
+          }
+        }
+      } catch (_) {}
 
-      // 2. Fallback via Fastify JWT
-      await req.jwtVerify();
-      const decoded = req.user as { userId: string };
-
+      // Fallback para validação JWT local
+      const decoded = app.jwt.verify<{ userId: string }>(token);
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
         include: { company: true },
       });
 
-      if (!user) {
-        return reply.status(401).send({ error: 'Usuário não encontrado.' });
-      }
+      if (!user) return reply.status(401).send({ error: 'Usuário não encontrado' });
 
-      return reply.status(200).send({
+      return {
         user: {
           id: user.id,
           name: user.name,
@@ -139,9 +134,9 @@ export async function authRoutes(app: FastifyInstance) {
           role: user.role,
           company: user.company,
         },
-      });
+      };
     } catch (err) {
-      return reply.status(401).send({ error: 'Sessão expirada ou token inválido.' });
+      return reply.status(401).send({ error: 'Sessão expirada' });
     }
   });
 }
