@@ -17,6 +17,14 @@ dotenv.config();
 
 const app = Fastify({ logger: true });
 
+// Configuração de Cabeçalhos de Segurança & Liberação de CSP para YouTube/Vimeo
+app.addHook('onRequest', async (req, reply) => {
+  reply.header(
+    'Content-Security-Policy',
+    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com;"
+  );
+});
+
 // Auto-seed para garantir que o banco em produção (Render/Supabase) sempre tenha os admins iniciais
 async function autoSeedDatabase() {
   try {
