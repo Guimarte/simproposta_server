@@ -143,6 +143,7 @@ export async function proposalRoutes(app: FastifyInstance) {
 
       return { success: true, message: 'Proposta aprovada com sucesso!', proposal };
     } catch (err: any) {
+      console.error('❌ Erro ao aprovar proposta:', err);
       return reply.status(400).send({ error: 'Erro ao aprovar proposta' });
     }
   });
@@ -211,30 +212,34 @@ export async function proposalRoutes(app: FastifyInstance) {
     });
   });
 
-  // 🚨 RASTREAMENTO EM TEMPO REAL
+  // 🚨 RASTREAMENTO EM TEMPO REAL - PRESENVA STATUS 'ACCEPTED'
   app.post('/api/track/open', async (req, reply) => {
     const { proposalId, userAgent } = req.body as { proposalId: string; userAgent: string };
 
-    await prisma.proposal.update({
-      where: { id: proposalId },
-      data: { status: 'VIEWED' },
-    });
+    try {
+      const existing = await prisma.proposal.findUnique({ where: { id: proposalId } });
+      if (existing && existing.status !== 'ACCEPTED') {
+        await prisma.proposal.update({
+          where: { id: proposalId },
+          data: { status: 'VIEWED' },
+        });
+      }
 
-    const viewEvent = await prisma.viewEvent.create({
-      data: {
-        proposalId,
-        userAgent,
-        durationSec: 0,
-      },
-    });
+      const viewEvent = await prisma.viewEvent.create({
+        data: {
+          proposalId,
+          userAgent,
+          durationSec: 0,
+        },
+      });
 
-    return { success: true, eventId: viewEvent.id };
+      return { success: true, eventId: viewEvent.id };
+    } catch (e) {
+      return { success: false };
+    }
   });
 
   app.post('/api/track/ping', async (req, reply) => {
-    const { proposalId, durationSec } = req.body as { proposalId: string; durationSec: number };
-
-    await prisma.proposal.create({} as any).catch(() => {});
     return { success: true };
   });
 }
