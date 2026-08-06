@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '../../shared/prisma';
+import { sendProposalEmail } from '../../services/email.service';
 
 export async function proposalRoutes(app: FastifyInstance) {
   // 📝 Cadastrar Nova Proposta
@@ -69,12 +70,19 @@ export async function proposalRoutes(app: FastifyInstance) {
 
       const publicUrl = `https://api.simaprova.com.br/${companySlug}/${proposal.slug}`;
 
-      // Log e Notificação de envio por e-mail/WhatsApp
+      // Disparo de E-mail HTML Profissional e Log WhatsApp
       if (clientEmail) {
-        console.log(`📧 [DISPARO AUTOMÁTICO DE E-MAIL] Proposta enviada para ${clientEmail}: ${publicUrl}`);
+        sendProposalEmail({
+          toEmail: clientEmail,
+          clientName,
+          proposal,
+          company: proposal.company,
+          publicUrl,
+        }).catch((e) => console.warn('⚠️ Disparo de e-mail diferido:', e));
       }
+
       if (clientPhone) {
-        console.log(`📱 [DISPARO WHATSAPP] Notificação de proposta enviada para ${clientPhone}: ${publicUrl}`);
+        console.log(`📱 [DISPARO WHATSAPP] Proposta pronta para envio para ${clientPhone}: ${publicUrl}`);
       }
 
       return reply.status(201).send({
@@ -114,7 +122,6 @@ export async function proposalRoutes(app: FastifyInstance) {
       return { proposals };
     } catch (err: any) {
       console.error('⚠️ Erro ao listar propostas:', err);
-      // Retorna lista vazia em caso de falha de consulta em vez de travar o app em 401
       return { proposals: [] };
     }
   });

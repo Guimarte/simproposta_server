@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposta Comercial - <%= proposal.title %></title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #071A2B;
+      color: #F3F7F8;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #071A2B;
+      padding: 40px 10px;
+    }
+    .main-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #0A2136;
+      border: 1px solid #1A3D5D;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+    .header {
+      background-color: #0D2A44;
+      padding: 28px;
+      text-align: center;
+      border-bottom: 1px solid #1A3D5D;
+    }
+    .company-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      margin: 0;
+    }
+    .content {
+      padding: 32px 28px;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin: 0 0 12px 0;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: #8AA4B7;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+    .details-box {
+      background: rgba(6, 107, 99, 0.12);
+      border: 1px solid <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .detail-row:last-child {
+      margin-bottom: 0;
+    }
+    .detail-label {
+      color: #8AA4B7;
+    }
+    .detail-val {
+      font-weight: 700;
+      color: #F3F7F8;
+    }
+    .total-val {
+      font-size: 20px;
+      color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      font-weight: 800;
+    }
+    .btn-container {
+      text-align: center;
+      margin: 32px 0 20px 0;
+    }
+    .cta-btn {
+      background-color: <%= company && company.primaryColor ? company.primaryColor : '#066B63' %>;
+      color: #FFFFFF !important;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 16px 36px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 4px 14px rgba(6, 107, 99, 0.4);
+    }
+    .footer {
+      background-color: #071A2B;
+      padding: 20px 28px;
+      text-align: center;
+      font-size: 12px;
+      color: #8AA4B7;
+      border-top: 1px solid #1A3D5D;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-card">
+      <div class="header">
+        <% if (company && company.logoUrl) { %>
+          <img src="<%= company.logoUrl %>" alt="<%= company.name %>" style="max-height: 48px;">
+        <% } else { %>
+          <h2 class="company-name"><%= company ? company.name : 'SimAprova' %></h2>
+        <% } %>
+      </div>
+
+      <div class="content">
+        <h1 class="title"><%= proposal.title %></h1>
+        <p class="subtitle">
+          Olá, <strong><%= proposal.clientName %></strong>!<br>
+          Sua proposta comercial oficial já está pronta para análise e assinatura digital.
+        </p>
+
+        <div class="details-box">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td class="detail-label" style="padding-bottom: 8px;">Cliente:</td>
+              <td class="detail-val" align="right" style="padding-bottom: 8px;"><%= proposal.clientName %></td>
+            </tr>
+            <tr>
+              <td class="detail-label" style="padding-bottom: 8px;">Vendedor Responsável:</td>
+              <td class="detail-val" align="right" style="padding-bottom: 8px;"><%= (proposal.user && proposal.user.name) ? proposal.user.name : (company ? company.name : 'Equipe Comercial') %></td>
+            </tr>
+            <tr>
+              <td class="detail-label" style="padding-bottom: 8px;">Validade:</td>
+              <td class="detail-val" align="right" style="padding-bottom: 8px;">15 Dias</td>
+            </tr>
+            <tr>
+              <td class="detail-label" style="font-size: 16px; font-weight: bold; color: #FFFFFF;">Investimento Total:</td>
+              <td class="detail-val total-val" align="right">R$ <%= parseFloat(proposal.totalValue || 0).toFixed(2) %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="btn-container">
+          <a href="<%= publicUrl %>" target="_blank" class="cta-btn">Visualizar Proposta Comercial</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        Este e-mail foi gerado automaticamente por <strong><%= company ? company.name : 'SimAprova' %></strong>.<br>
+        Acordo Sólido — Confiança Imediatamente Visível.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
